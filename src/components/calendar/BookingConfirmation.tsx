@@ -8,6 +8,7 @@ import { TimeSlot, BookingFormData } from "@/types";
 interface BookingConfirmationProps {
   slot: TimeSlot;
   massageType: string;
+  duration: number;
   onBack: () => void;
 }
 
@@ -32,6 +33,7 @@ const massageTypeLabels: Record<string, string> = {
 export default function BookingConfirmation({
   slot,
   massageType,
+  duration,
   onBack,
 }: BookingConfirmationProps) {
   const [formData, setFormData] = useState<BookingFormData>({
@@ -55,6 +57,8 @@ export default function BookingConfirmation({
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const typeLabel = massageTypeLabels[massageType] || massageType;
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!allFieldsFilled) return;
@@ -72,8 +76,7 @@ export default function BookingConfirmation({
           adresa: formData.adresa,
           telefon: formData.telefon,
           zdravotnyStav: formData.zdravotnyStav,
-          massageType:
-            massageTypeLabels[massageType] || massageType,
+          massageType: `${typeLabel} (${duration} min)`,
         }),
       });
       const data = await response.json();
@@ -113,7 +116,7 @@ export default function BookingConfirmation({
           Rezervácia potvrdená!
         </h3>
         <p className="text-heading/70 mb-1">
-          {massageTypeLabels[massageType] || massageType}
+          {typeLabel} — {duration} min
         </p>
         <p className="text-heading/70">
           {formatDate(slot.start)} o {formatTime(slot.start)} -{" "}
@@ -147,7 +150,7 @@ export default function BookingConfirmation({
       {/* Selected info */}
       <div className="bg-accent/20 rounded-xl p-4 mb-6">
         <p className="font-medium text-heading">
-          {massageTypeLabels[massageType] || massageType}
+          {typeLabel} — {duration} min
         </p>
         <p className="text-heading/70 text-sm">
           {formatDate(slot.start)} | {formatTime(slot.start)} -{" "}

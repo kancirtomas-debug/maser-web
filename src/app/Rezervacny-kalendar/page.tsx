@@ -8,9 +8,18 @@ import BookingConfirmation from "@/components/calendar/BookingConfirmation";
 import ScrollReveal from "@/components/shared/ScrollReveal";
 import { TimeSlot } from "@/types";
 
+const massageTypeLabels: Record<string, string> = {
+  klasicka: "Klasická masáž",
+  sportova: "Klasická masáž s prvkami Športovej masáže",
+  bankova: "Klasická masáž s použitím Bankovej terapie",
+  "makke-techniky": "Klasická masáž s prvkami Mäkkých techník",
+};
+
 function CalendarContent() {
   const searchParams = useSearchParams();
   const massageType = searchParams.get("type") || "klasicka";
+  const duration = parseInt(searchParams.get("duration") || "60", 10);
+  const safeDuration = [60, 90, 120].includes(duration) ? duration : 60;
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
@@ -18,20 +27,25 @@ function CalendarContent() {
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [showBooking, setShowBooking] = useState(false);
 
-  const fetchSlots = useCallback(async (date: string) => {
-    setLoadingSlots(true);
-    setSelectedSlot(null);
-    setShowBooking(false);
-    try {
-      const response = await fetch(`/api/calendar/slots?date=${date}`);
-      const data = await response.json();
-      setSlots(data.slots || []);
-    } catch {
-      setSlots([]);
-    } finally {
-      setLoadingSlots(false);
-    }
-  }, []);
+  const fetchSlots = useCallback(
+    async (date: string) => {
+      setLoadingSlots(true);
+      setSelectedSlot(null);
+      setShowBooking(false);
+      try {
+        const response = await fetch(
+          `/api/calendar/slots?date=${date}&duration=${safeDuration}`
+        );
+        const data = await response.json();
+        setSlots(data.slots || []);
+      } catch {
+        setSlots([]);
+      } finally {
+        setLoadingSlots(false);
+      }
+    },
+    [safeDuration]
+  );
 
   const handleDateSelect = (date: string) => {
     setSelectedDate(date);
@@ -43,15 +57,19 @@ function CalendarContent() {
     setShowBooking(true);
   };
 
+  const typeLabel = massageTypeLabels[massageType] || massageType;
+
   return (
     <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
       <ScrollReveal>
-        <h1 className="text-3xl md:text-4xl font-bold text-heading text-center mb-4">
-          Kalendár
+        <h1 className="text-3xl md:text-4xl font-bold text-heading text-center mb-2">
+          Rezervácia
         </h1>
-        <p className="text-center text-hover mb-12">
-          Vyberte si dátum a čas pre vašu masáž.
-        </p>
+        <div className="text-center mb-12">
+          <span className="inline-block bg-primary/10 text-primary font-semibold px-4 py-2 rounded-full text-sm">
+            {typeLabel} — {safeDuration} min
+          </span>
+        </div>
       </ScrollReveal>
 
       {!showBooking ? (
@@ -76,6 +94,7 @@ function CalendarContent() {
         <BookingConfirmation
           slot={selectedSlot}
           massageType={massageType}
+          duration={safeDuration}
           onBack={() => setShowBooking(false)}
         />
       ) : null}

@@ -14,11 +14,20 @@ function getCalendarClient() {
   return google.calendar({ version: "v3", auth });
 }
 
-function generateDaySlots(date: string): TimeSlot[] {
+function generateDaySlots(date: string, durationMinutes: number): TimeSlot[] {
   const slots: TimeSlot[] = [];
-  for (let hour = 8; hour < 18; hour++) {
-    const start = `${date}T${hour.toString().padStart(2, "0")}:00:00+01:00`;
-    const end = `${date}T${(hour + 1).toString().padStart(2, "0")}:00:00+01:00`;
+  const startHour = 8;
+  const endHour = 18;
+  const durationHours = durationMinutes / 60;
+
+  for (let hour = startHour; hour + durationHours <= endHour; hour++) {
+    const startH = hour;
+    const endH = hour + durationHours;
+    const endHour2 = Math.floor(endH);
+    const endMin = Math.round((endH - endHour2) * 60);
+
+    const start = `${date}T${startH.toString().padStart(2, "0")}:00:00+01:00`;
+    const end = `${date}T${endHour2.toString().padStart(2, "0")}:${endMin.toString().padStart(2, "0")}:00+01:00`;
     slots.push({ start, end, available: true });
   }
   return slots;
@@ -39,7 +48,10 @@ function isOverlapping(
   return sStart < bEnd && sEnd > bStart;
 }
 
-export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
+export async function getAvailableSlots(
+  date: string,
+  durationMinutes: number = 60
+): Promise<TimeSlot[]> {
   const calendar = getCalendarClient();
   const calendarId = process.env.GOOGLE_CALENDAR_ID!;
 
@@ -57,7 +69,7 @@ export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
     });
 
     const busySlots = response.data.items || [];
-    const allSlots = generateDaySlots(date);
+    const allSlots = generateDaySlots(date, durationMinutes);
 
     return allSlots.map((slot) => ({
       ...slot,
@@ -74,7 +86,7 @@ export async function getAvailableSlots(date: string): Promise<TimeSlot[]> {
     console.error("Google Calendar API error:", error);
     // If the API call fails, return all slots as available
     // so the user can still attempt to book
-    const allSlots = generateDaySlots(date);
+    const allSlots = generateDaySlots(date, durationMinutes);
     return allSlots;
   }
 }
