@@ -24,7 +24,9 @@ function formatDate(isoString: string): string {
 
 const massageTypeLabels: Record<string, string> = {
   klasicka: "Klasická masáž",
+  sportova: "Klasická masáž s prvkami Športovej masáže",
   bankova: "Klasická masáž s použitím Bankovej terapie",
+  "makke-techniky": "Klasická masáž s prvkami Mäkkých techník",
 };
 
 export default function BookingConfirmation({

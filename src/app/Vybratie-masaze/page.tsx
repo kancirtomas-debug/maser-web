@@ -17,7 +17,7 @@ export default function MassageSelectionPage() {
         </h1>
       </ScrollReveal>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-12">
         {massageTypes.map((massage, i) => (
           <ScrollReveal key={massage.id} delay={i * 0.15}>
             <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-accent/20 hover:border-primary/30 hover:shadow-lg transition-all duration-300 h-full flex flex-col">
